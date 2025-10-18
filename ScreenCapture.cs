@@ -6,16 +6,24 @@ using System.Windows;
 using Windows.Graphics.Capture;
 using Windows.Graphics.DirectX;
 using Windows.Graphics.DirectX.Direct3D11;
-using SharpDX.Direct3D11;
-using SharpDX.DXGI;
 using WinRT.Interop;
 using System.Windows.Interop;
 
+// ==========================================================
+// ОСЬ ВИПРАВЛЕННЯ (ВАШ ВАРІАНТ А):
+// Використовуємо Vortice замість SharpDX
+using Vortice.Direct3D11;
+using Vortice.DXGI;
+// ==========================================================
+
+
+// Оголошення необхідних COM-інтерфейсів для Interop
 [ComImport]
 [Guid("A9B3D012-3DF2-4EE3-B8D1-8695F457D3C1")]
 [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
 interface IDirect3DDXGISurface
 {
+    // Vortice.DXGI.SurfaceDescription
     void GetDesc(out SurfaceDescription pDesc);
 }
 
@@ -24,18 +32,29 @@ namespace MomentSnap
     public class ScreenCapture
     {
         private GraphicsCaptureItem _captureItem;
-        private ID3D11Device _d3dDevice;
-        private SharpDX.Direct3D11.Device _sharpDxDevice;
+        
+        // Використовуємо типи Vortice
+        private ID3D11Device _d3dDevice; // WinRT
+        private Vortice.Direct3D11.ID3D11Device _vorticeDevice; // Vortice
 
         public ScreenCapture()
         {
-            _sharpDxDevice = new SharpDX.Direct3D11.Device(DriverType.Hardware, DeviceCreationFlags.BgraSupport);
-            _d3dDevice = CreateDirect3D11DeviceFromSharpDXDevice(_sharpDxDevice);
+            // Створюємо пристрій Vortice
+            D3D11.D3D11CreateDevice(
+                null, // Адаптер (null = за замовчуванням)
+                DriverType.Hardware,
+                DeviceCreationFlags.BgraSupport,
+                null, // Feature levels (null = default)
+                out _vorticeDevice).CheckError();
+            
+            // Створюємо пристрій WinRT (для FramePool) з пристрою Vortice
+            _d3dDevice = CreateDirect3D11DeviceFromVorticeDevice(_vorticeDevice);
         }
 
-        private ID3D11Device CreateDirect3D11DeviceFromSharpDXDevice(SharpDX.Direct3D11.Device device)
+        // Допоміжна функція для "склеювання" Vortice та WinRT
+        private ID3D11Device CreateDirect3D11DeviceFromVorticeDevice(Vortice.Direct3D11.ID3D11Device device)
         {
-            using (var dxgiDevice = device.QueryInterface<SharpDX.DXGI.Device>())
+            using (var dxgiDevice = device.QueryInterface<IDXGIDevice>())
             {
                 return (ID3D11Device)GraphicsCaptureAccess.CreateDirect3D11DeviceFromDXGIDevice(dxgiDevice.NativePointer);
             }
@@ -79,18 +98,21 @@ namespace MomentSnap
 
             try
             {
-                using (var sourceTexture = GetSharpDXTextureFromFrame(frame.Surface))
+                // Використовуємо Vortice.Direct3D11.ID3D11Texture2D
+                using (var sourceTexture = GetVorticeTextureFromFrame(frame.Surface))
                 {
                     var stagingDesc = sourceTexture.Description;
                     stagingDesc.CpuAccessFlags = CpuAccessFlags.Read;
                     stagingDesc.Usage = ResourceUsage.Staging;
                     stagingDesc.BindFlags = BindFlags.None;
-                    stagingDesc.OptionFlags = ResourceOptionFlags.None;
+                    stagingDesc.MiscFlags = ResourceMiscFlags.None;
 
-                    using (var stagingTexture = new Texture2D(_sharpDxDevice, stagingDesc))
+                    using (var stagingTexture = _vorticeDevice.CreateTexture2D(stagingDesc))
                     {
-                        _sharpDxDevice.ImmediateContext.CopyResource(sourceTexture, stagingTexture);
-                        var dataBox = _sharpDxDevice.ImmediateContext.MapSubresource(stagingTexture, 0, MapMode.Read, MapFlags.None);
+                        _vorticeDevice.ImmediateContext.CopyResource(stagingTexture, sourceTexture);
+                        
+                        // API маппінгу Vortice трохи відрізняється
+                        var mappedSubresource = _vorticeDevice.ImmediateContext.Map(stagingTexture, 0, MapMode.Read, MapFlags.None);
 
                         wpfBitmap = BitmapSource.Create(
                             sourceTexture.Description.Width,
@@ -98,13 +120,13 @@ namespace MomentSnap
                             96, 96,
                             System.Windows.Media.PixelFormats.Bgra32,
                             null,
-                            dataBox.DataPointer,
-                            dataBox.RowPitch * sourceTexture.Description.Height,
-                            dataBox.RowPitch
+                            mappedSubresource.DataPointer, // Використовуємо mappedSubresource.DataPointer
+                            mappedSubresource.RowPitch * sourceTexture.Description.Height, // Використовуємо RowPitch
+                            mappedSubresource.RowPitch
                         );
 
                         wpfBitmap.Freeze();
-                        _sharpDxDevice.ImmediateContext.UnmapSubresource(stagingTexture, 0);
+                        _vorticeDevice.ImmediateContext.Unmap(stagingTexture, 0);
                     }
                 }
             }
@@ -116,16 +138,21 @@ namespace MomentSnap
             return wpfBitmap;
         }
 
-        private Texture2D GetSharpDXTextureFromFrame(IDirect3DSurface surface)
+        // Отримуємо Vortice.Direct3D11.ID3D11Texture2D
+        private ID3D11Texture2D GetVorticeTextureFromFrame(IDirect3DSurface surface)
         {
             var access = (IDirect3DDXGISurface)surface;
             access.GetDesc(out var desc);
+            
+            // Використовуємо WinRT Interop для отримання вказівника
             IntPtr texturePtr;
-            using (var dxgiSurface = surface.QueryInterface<SharpDX.DXGI.Surface>())
+            using (var dxgiSurface = surface.QueryInterface<Vortice.DXGI.IDXGISurface>())
             {
                 texturePtr = dxgiSurface.NativePointer;
             }
-            return new Texture2D(texturePtr);
+
+            // Створюємо об'єкт Vortice з вказівника
+            return new ID3D11Texture2D(texturePtr);
         }
     }
 }
