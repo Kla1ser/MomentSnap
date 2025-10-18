@@ -16,6 +16,7 @@
   <ItemGroup>
     <PackageReference Include="Vortice.Direct3D11" Version="2.1.33" />
     <PackageReference Include="Vortice.DXGI" Version="2.1.33" />
+
     </ItemGroup>
 
   <ItemGroup>
