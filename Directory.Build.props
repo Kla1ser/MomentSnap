@@ -1,0 +1,5 @@
+<Project>
+  <PropertyGroup>
+    <CsWinRTComponentType>Desktop</CsWinRTComponentType>
+  </PropertyGroup>
+</Project>
