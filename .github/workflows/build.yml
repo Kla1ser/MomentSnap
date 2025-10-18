@@ -1,0 +1,33 @@
+name: Build MomentSnap
+
+on:
+  push:
+    branches: [ "main" ] # "main" або "master" залежно від назви вашої гілки
+
+jobs:
+  build:
+    runs-on: windows-latest  # Це обов'язково Windows
+
+    steps:
+    - name: Get code
+      uses: actions/checkout@v3
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v3
+      with:
+        dotnet-version: '8.0.x' # Має збігатися з .csproj
+
+    - name: Restore dependencies
+      run: dotnet restore
+
+    - name: Build
+      run: dotnet build --configuration Release --no-restore
+
+    - name: Publish
+      run: dotnet publish --configuration Release --output ./publish
+
+    - name: Upload artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: MomentSnap-Build
+        path: ./publish
