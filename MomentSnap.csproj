@@ -10,13 +10,14 @@
     
     <WindowsAppSDKBootstrapInitialize>false</WindowsAppSDKBootstrapInitialize>
     <WindowsPackageType>None</WindowsPackageType>
-
-    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier> 
+    
+    <WindowsAppSdkManageSelfContained>true</WindowsAppSdkManageSelfContained>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="Microsoft.WindowsAppSDK" Version="1.5.240428000" />
-    
     <PackageReference Include="SharpDX.Direct3D11" Version="4.2.0" />
     <PackageReference Include="SharpDX.DXGI" Version="4.2.0" />
   </ItemGroup>
