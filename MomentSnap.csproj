@@ -10,6 +10,8 @@
     
     <WindowsAppSDKBootstrapInitialize>false</WindowsAppSDKBootstrapInitialize>
     <WindowsPackageType>None</WindowsPackageType>
+
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
   </PropertyGroup>
 
   <ItemGroup>
