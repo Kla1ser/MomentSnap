@@ -14,9 +14,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="SharpDX.Direct3D11" Version="4.2.0" />
-    <PackageReference Include="SharpDX.DXGI" Version="4.2.0" />
-  </ItemGroup>
+    <PackageReference Include="Vortice.Direct3D11" Version="2.1.33" />
+    <PackageReference Include="Vortice.DXGI" Version="2.1.33" />
+    </ItemGroup>
 
   <ItemGroup>
     <Content Include="icon.ico">
