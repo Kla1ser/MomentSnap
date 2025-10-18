@@ -1,8 +1,6 @@
 using System;
 using System.Windows;
-// Ми використовуємо явні типи System.Windows.Input, 
-// тому цей using стає необов'язковим, але хай буде для чистоти
-using System.Windows.Input; 
+using System.Windows.Input; // KeyEventArgs, MouseEventArgs, etc.
 using System.Windows.Media.Imaging;
 
 namespace MomentSnap
