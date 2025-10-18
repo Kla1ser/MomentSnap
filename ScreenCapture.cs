@@ -10,7 +10,7 @@ using WinRT.Interop;
 using System.Windows.Interop;
 
 // ==========================================================
-// ОСЬ ВИПРАВЛЕННЯ (ВАШ ВАРІАНТ А):
+// ОСЬ ВИПРАВЛЕННЯ (ВАШ ВАРІАНТ 2):
 // Використовуємо Vortice замість SharpDX
 using Vortice.Direct3D11;
 using Vortice.DXGI;
