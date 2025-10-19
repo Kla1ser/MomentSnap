@@ -1,29 +1,28 @@
 using System;
-using System.Drawing; // Для GDI+ Bitmap
-using System.Drawing.Imaging; // Для GDI+ PixelFormat
-using System.IO; // Для MemoryStream
-using System.Threading.Tasks; // Для Task
-using System.Windows.Media.Imaging; // Для WPF BitmapSource
+using System.Drawing; 
+using System.Drawing.Imaging;
+using System.IO; 
+using System.Threading.Tasks; 
+using System.Windows.Media.Imaging; 
 
-// Явно використовуємо System.Windows.Forms для доступу до Screen
 using WinForms = System.Windows.Forms;
 
 namespace MomentSnap
 {
-    public class ScreenCapture
+    /// <summary>
+    /// GDI+ реалізація, яка тепер відповідає "контракту" ICaptureService.
+    /// </summary>
+    public class GdiCapture : ICaptureService // <-- Вказуємо "контракт"
     {
-        public Task<BitmapSource> TakeSnapshotAsync()
+        // Реалізація методу з контракту
+        public Task<BitmapSource?> TakeSnapshotAsync()
         {
-            // === ВИПРАВЛЕННЯ CS8602 ===
-            // Додаємо null-guard, як ви й запропонували.
             var screen = WinForms.Screen.PrimaryScreen;
             if (screen == null)
             {
-                // Failsafe для середовищ без PrimaryScreen (наприклад, CI runner)
                 screen = WinForms.Screen.AllScreens[0]; 
             }
             var bounds = screen.Bounds;
-            // ==========================
             
             var bmp = new Bitmap(bounds.Width, bounds.Height, PixelFormat.Format32bppArgb);
             
@@ -46,12 +45,15 @@ namespace MomentSnap
                 
                 bmp.Dispose(); 
                 
-                return Task.FromResult<BitmapSource>(bitmapImage);
+                // Ми повинні повертати Task<BitmapSource?>, а не Task<BitmapSource>
+                return Task.FromResult<BitmapSource?>(bitmapImage);
             }
         }
         
+        // Реалізація методу з контракту
         public Task PickCaptureTargetAsync()
         {
+            // GDI+ не потребує вибору цілі.
             return Task.CompletedTask;
         }
     }
