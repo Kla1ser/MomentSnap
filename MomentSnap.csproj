@@ -13,15 +13,14 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="System.Drawing.Common" Version="8.0.0" />
+    <PackageReference Include="System.Drawing.Common" Version="8.0.0" /> 
     
     <PackageReference Include="Microsoft.Windows.CsWinRT" Version="2.0.4" /> 
     <PackageReference Include="Microsoft.Windows.SDK.Contracts" Version="10.0.22621.755" /> 
     
-    <PackageReference Include="Vortice.Direct3D" Version="2.1.33" /> 
-    <PackageReference Include="Vortice.Direct3D11" Version="2.1.33" />
-    <PackageReference Include="Vortice.DXGI" Version="2.1.33" />
-    </ItemGroup>
+    <PackageReference Include="Vortice.Direct3D11" Version="2.1.40" />
+    <PackageReference Include="Vortice.DXGI" Version="2.1.40" />
+    <PackageReference Include="Vortice.Mathematics" Version="1.6.0" /> </ItemGroup>
 
   <ItemGroup>
     <Content Include="icon.ico">
