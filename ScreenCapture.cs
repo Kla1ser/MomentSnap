@@ -16,14 +16,12 @@ namespace MomentSnap
     /// </summary>
     public class ScreenCapture
     {
-        // Робимо поле nullable, щоб виправити попередження CS8618
-        private GraphicsCaptureItem? _captureItem; 
-
         // Ми залишаємо метод async, щоб відповідати App.xaml.cs,
         // але всередині він буде синхронним.
         public Task<BitmapSource> TakeSnapshotAsync()
         {
             // Використовуємо логіку GDI+ CopyFromScreen
+            // (Використовуємо PrimaryScreen, як ви й запропонували)
             var bounds = WinForms.Screen.PrimaryScreen.Bounds;
             var bmp = new Bitmap(bounds.Width, bounds.Height, PixelFormat.Format32bppArgb);
             
@@ -50,6 +48,14 @@ namespace MomentSnap
                 // Повертаємо готовий WPF-сумісний знімок
                 return Task.FromResult<BitmapSource>(bitmapImage);
             }
+        }
+        
+        // Ми залишаємо PickCaptureTargetAsync (який тепер нічого не робить),
+        // щоб задовольнити код у App.xaml.cs, який може його викликати.
+        public Task PickCaptureTargetAsync()
+        {
+            // Оскільки ми використовуємо GDI+, вибір екрана не потрібен.
+            return Task.CompletedTask;
         }
     }
 }
