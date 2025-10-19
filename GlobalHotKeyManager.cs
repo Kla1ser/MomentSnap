@@ -2,8 +2,8 @@ using System;
 using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Interop;
-
-// Прибираємо using System.Windows.Forms, він тут не потрібен
+// Ми не потребуємо using System.Windows.Forms, 
+// оскільки наш App.xaml.cs вже має його для NotifyIcon
 
 public static class GlobalHotKeyManager
 {
@@ -27,7 +27,7 @@ public static class GlobalHotKeyManager
 
         IntPtr handle = new WindowInteropHelper(window).EnsureHandle();
         _source = HwndSource.FromHwnd(handle);
-        _source.AddHook(HwndHook);
+        _source!.AddHook(HwndHook); // _source не буде null тут
 
         if (!RegisterHotKey(handle, HOTKEY_ID, MOD_NONE, VK_F12))
         {
@@ -46,7 +46,7 @@ public static class GlobalHotKeyManager
         
         // === ВИПРАВЛЕННЯ CS0104 ===
         // Явно вказуємо, що це WPF Application
-        if (System.Windows.Application.Current != null)
+        if (System.Windows.Application.Current != null && System.Windows.Application.Current.MainWindow != null)
         {
              IntPtr handle = new WindowInteropHelper(System.Windows.Application.Current.MainWindow).Handle;
              UnregisterHotKey(handle, HOTKEY_ID);
