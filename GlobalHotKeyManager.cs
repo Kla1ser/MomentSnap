@@ -3,6 +3,8 @@ using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Interop;
 
+// Прибираємо using System.Windows.Forms, він тут не потрібен
+
 public static class GlobalHotKeyManager
 {
     [DllImport("user32.dll")]
@@ -16,7 +18,7 @@ public static class GlobalHotKeyManager
     public const uint MOD_NONE = 0x0000;
     public const uint VK_F12 = 0x7B;
 
-    private static HwndSource _source;
+    private static HwndSource? _source; // Робимо nullable (виправляє попередження CS8618)
     private static bool _isRegistered = false;
 
     public static void RegisterHotKey(Window window)
@@ -29,18 +31,26 @@ public static class GlobalHotKeyManager
 
         if (!RegisterHotKey(handle, HOTKEY_ID, MOD_NONE, VK_F12))
         {
-            MessageBox.Show("Не вдалося зареєструвати гарячу клавішу F12.", "Помилка");
+            // === ВИПРАВЛЕННЯ CS0104 ===
+            // Явно вказуємо, що це WPF MessageBox
+            System.Windows.MessageBox.Show("Не вдалося зареєструвати гарячу клавішу F12.", "Помилка");
         }
         _isRegistered = true;
     }
 
     public static void UnregisterHotKey()
     {
-        if (!_isRegistered) return;
+        if (!_isRegistered || _source == null) return;
 
         _source.RemoveHook(HwndHook);
-        IntPtr handle = new WindowInteropHelper(Application.Current.MainWindow).Handle;
-        UnregisterHotKey(handle, HOTKEY_ID);
+        
+        // === ВИПРАВЛЕННЯ CS0104 ===
+        // Явно вказуємо, що це WPF Application
+        if (System.Windows.Application.Current != null)
+        {
+             IntPtr handle = new WindowInteropHelper(System.Windows.Application.Current.MainWindow).Handle;
+             UnregisterHotKey(handle, HOTKEY_ID);
+        }
         _isRegistered = false;
     }
 
@@ -54,5 +64,5 @@ public static class GlobalHotKeyManager
         return IntPtr.Zero;
     }
 
-    public static event EventHandler OnHotKeyPressed;
+    public static event EventHandler? OnHotKeyPressed; // Робимо nullable (виправляє попередження CS8618)
 }
