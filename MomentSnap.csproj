@@ -14,10 +14,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Vortice.Direct3D11" Version="2.1.33" />
-    <PackageReference Include="Vortice.DXGI" Version="2.1.33" />
-
-    </ItemGroup>
+    <PackageReference Include="System.Drawing.Common" Version="8.0.0" />
+  </ItemGroup>
 
   <ItemGroup>
     <Content Include="icon.ico">
