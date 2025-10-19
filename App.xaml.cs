@@ -10,7 +10,12 @@ namespace MomentSnap
     {
         private NotifyIcon? _notifyIcon;
         private MainWindow? _hiddenWindow;
-        private ScreenCapture? _capture;
+        
+        // === ЗМІНА ТУТ ===
+        // Використовуємо наш новий "контракт"
+        private ICaptureService? _capture; 
+        // =================
+        
         private bool _isBusy = false;
 
         protected override void OnStartup(StartupEventArgs e)
@@ -18,13 +23,15 @@ namespace MomentSnap
             base.OnStartup(e);
 
             _hiddenWindow = new MainWindow();
-            _capture = new ScreenCapture();
+            
+            // === ПЕРЕМИКАЧ ===
+            // Ми вмикаємо нашу нову WGC-версію!
+            _capture = new WgcCapture(); 
+            // (Якщо захочемо повернути GDI, просто напишемо: new GdiCapture();)
+            // ==================
 
             _notifyIcon = new NotifyIcon();
 
-            // === ВИПРАВЛЕННЯ (Try...Catch) ===
-            // Ми "ловимо" помилку, якщо icon.ico пошкоджений.
-            // Це дозволить програмі продовжити працювати, навіть якщо іконки немає.
             try
             {
                 _notifyIcon.Icon = new System.Drawing.Icon("icon.ico");
@@ -33,18 +40,13 @@ namespace MomentSnap
             }
             catch (Exception ex)
             {
-                // Якщо іконка зламана, просто покажемо помилку, але НЕ будемо "падати".
                 System.Windows.MessageBox.Show(
                     "Не вдалося завантажити icon.ico. " +
                     "Програма працюватиме без іконки в треї. " +
                     "Помилка: " + ex.Message, 
                     "Помилка іконки");
-                
-                // Ми все одно робимо іконку "видимою", 
-                // щоб можна було додати до неї меню "Вихід".
                 _notifyIcon.Visible = true; 
             }
-            // ==================================
 
 
             _notifyIcon.ContextMenuStrip = new ContextMenuStrip();
@@ -54,26 +56,27 @@ namespace MomentSnap
             GlobalHotKeyManager.OnHotKeyPressed += OnHotKeyHandler;
         }
 
-        // === ВИПРАВЛЕННЯ CS8622 ===
-        // Додаємо '?' до 'object', щоб відповідати делегату EventHandler
         private void OnExitClicked(object? sender, EventArgs e)
         {
             GlobalHotKeyManager.UnregisterHotKey();
-            _notifyIcon?.Dispose(); // Додаємо '?' про всяк випадок
+            _notifyIcon?.Dispose(); 
             Shutdown();
         }
 
-        // === ВИПРАВЛЕННЯ CS8622 ===
-        // Додаємо '?' до 'object', щоб відповідати делегату EventHandler
         private async void OnHotKeyHandler(object? sender, EventArgs e)
         {
-            if (_isBusy || _capture == null) return; // Додаємо перевірку на null
+            if (_isBusy || _capture == null) return; 
             _isBusy = true;
 
             try
             {
-                BitmapSource fullScreenshot = await _capture.TakeSnapshotAsync();
-                if (fullScreenshot == null) return; 
+                // Все інше залишається без змін!
+                BitmapSource? fullScreenshot = await _capture.TakeSnapshotAsync(); 
+                if (fullScreenshot == null) 
+                {
+                    _isBusy = false;
+                    return; 
+                }
 
                 var overlayWindow = new CaptureOverlayWindow(fullScreenshot);
                 overlayWindow.ShowDialog(); 
@@ -81,8 +84,11 @@ namespace MomentSnap
                 var selectionRect = overlayWindow.Selection;
 
                 if (selectionRect.IsEmpty || selectionRect.Width <= 1 || selectionRect.Height <= 1)
+                {
+                    _isBusy = false;
                     return;
-
+                }
+                    
                 var dpi = VisualTreeHelper.GetDpi(overlayWindow);
                 var physicalRect = new Int32Rect(
                     (int)(selectionRect.X * dpi.DpiScaleX),
