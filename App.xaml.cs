@@ -8,9 +8,13 @@ namespace MomentSnap
 {
     public partial class App : System.Windows.Application
     {
-        private NotifyIcon _notifyIcon;
-        private MainWindow _hiddenWindow;
-        private ScreenCapture _capture;
+        // === ВИПРАВЛЕННЯ CS8618 ===
+        // Робимо поля nullable, оскільки вони ініціалізуються в OnStartup
+        private NotifyIcon? _notifyIcon;
+        private MainWindow? _hiddenWindow;
+        private ScreenCapture? _capture;
+        // ==========================
+
         private bool _isBusy = false;
 
         protected override void OnStartup(StartupEventArgs e)
@@ -32,15 +36,26 @@ namespace MomentSnap
             GlobalHotKeyManager.OnHotKeyPressed += OnHotKeyHandler;
         }
 
-        private async void OnHotKeyHandler(object sender, EventArgs e)
+        // === ВИПРАВЛЕННЯ CS8622 ===
+        // Додаємо '?' до 'object', щоб відповідати делегату EventHandler
+        private void OnExitClicked(object? sender, EventArgs e)
         {
-            if (_isBusy) return;
+            GlobalHotKeyManager.UnregisterHotKey();
+            _notifyIcon?.Dispose(); // Додаємо '?' про всяк випадок
+            Shutdown();
+        }
+
+        // === ВИПРАВЛЕННЯ CS8622 ===
+        // Додаємо '?' до 'object', щоб відповідати делегату EventHandler
+        private async void OnHotKeyHandler(object? sender, EventArgs e)
+        {
+            if (_isBusy || _capture == null) return; // Додаємо перевірку на null
             _isBusy = true;
 
             try
             {
                 BitmapSource fullScreenshot = await _capture.TakeSnapshotAsync();
-                if (fullScreenshot == null) return;
+                if (fullScreenshot == null) return; 
 
                 var overlayWindow = new CaptureOverlayWindow(fullScreenshot);
                 overlayWindow.ShowDialog(); 
@@ -63,23 +78,16 @@ namespace MomentSnap
 
                 System.Windows.Clipboard.SetImage(croppedBitmap);
 
-                _notifyIcon.ShowBalloonTip(1000, "Moment Snap", "Знімок скопійовано!", ToolTipIcon.Info);
+                _notifyIcon?.ShowBalloonTip(1000, "Moment Snap", "Знімок скопійовано!", ToolTipIcon.Info);
             }
             catch (Exception ex)
             {
-                _notifyIcon.ShowBalloonTip(2000, "Moment Snap - Помилка", ex.Message, ToolTipIcon.Error);
+                _notifyIcon?.ShowBalloonTip(2000, "Moment Snap - Помилка", ex.Message, ToolTipIcon.Error);
             }
             finally
             {
                 _isBusy = false;
             }
-        }
-
-        private void OnExitClicked(object sender, EventArgs e)
-        {
-            GlobalHotKeyManager.UnregisterHotKey();
-            _notifyIcon.Dispose();
-            Shutdown();
         }
 
         protected override void OnExit(ExitEventArgs e)
