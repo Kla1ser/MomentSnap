@@ -8,13 +8,9 @@ namespace MomentSnap
 {
     public partial class App : System.Windows.Application
     {
-        // === ВИПРАВЛЕННЯ CS8618 ===
-        // Робимо поля nullable, оскільки вони ініціалізуються в OnStartup
         private NotifyIcon? _notifyIcon;
         private MainWindow? _hiddenWindow;
         private ScreenCapture? _capture;
-        // ==========================
-
         private bool _isBusy = false;
 
         protected override void OnStartup(StartupEventArgs e)
@@ -25,9 +21,31 @@ namespace MomentSnap
             _capture = new ScreenCapture();
 
             _notifyIcon = new NotifyIcon();
-            _notifyIcon.Icon = new System.Drawing.Icon("icon.ico");
-            _notifyIcon.Text = "Moment Snap";
-            _notifyIcon.Visible = true;
+
+            // === ВИПРАВЛЕННЯ (Try...Catch) ===
+            // Ми "ловимо" помилку, якщо icon.ico пошкоджений.
+            // Це дозволить програмі продовжити працювати, навіть якщо іконки немає.
+            try
+            {
+                _notifyIcon.Icon = new System.Drawing.Icon("icon.ico");
+                _notifyIcon.Text = "Moment Snap";
+                _notifyIcon.Visible = true;
+            }
+            catch (Exception ex)
+            {
+                // Якщо іконка зламана, просто покажемо помилку, але НЕ будемо "падати".
+                System.Windows.MessageBox.Show(
+                    "Не вдалося завантажити icon.ico. " +
+                    "Програма працюватиме без іконки в треї. " +
+                    "Помилка: " + ex.Message, 
+                    "Помилка іконки");
+                
+                // Ми все одно робимо іконку "видимою", 
+                // щоб можна було додати до неї меню "Вихід".
+                _notifyIcon.Visible = true; 
+            }
+            // ==================================
+
 
             _notifyIcon.ContextMenuStrip = new ContextMenuStrip();
             _notifyIcon.ContextMenuStrip.Items.Add("Вихід", null, OnExitClicked);
