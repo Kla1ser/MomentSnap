@@ -1,20 +1,27 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
+    
     <TargetFramework>net8.0-windows10.0.22621.0</TargetFramework> 
+    
     <UseWPF>true</UseWPF>
-    <UseWindowsForms>true</UseWindowsForms>
-    <Nullable>enable</Nullable>
-    <ImplicitUsions>enable</ImplicitUsions>
+    <UseWindowsForms>true</UseWindowsForms> <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
     <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    
+    <CsWinRTComponentType>Application</CsWinRTComponentType> 
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="System.Drawing.Common" Version="8.0.0" />
     
+    <PackageReference Include="Microsoft.Windows.CsWinRT" Version="2.0.4" /> 
+    <PackageReference Include="Microsoft.Windows.SDK.Contracts" Version="10.0.22621.755" /> 
+    
+    <PackageReference Include="Vortice.Direct3D" Version="2.1.33" /> 
     <PackageReference Include="Vortice.Direct3D11" Version="2.1.33" />
     <PackageReference Include="Vortice.DXGI" Version="2.1.33" />
-  </ItemGroup>
+    </ItemGroup>
 
   <ItemGroup>
     <Content Include="icon.ico">
