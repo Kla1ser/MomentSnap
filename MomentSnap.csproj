@@ -9,7 +9,6 @@
     
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-    <ApplicationIcon>icon.ico</ApplicationIcon>
     
     <RuntimeIdentifier>win-x64</RuntimeIdentifier>
   </PropertyGroup>
